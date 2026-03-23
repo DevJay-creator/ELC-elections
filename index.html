@@ -2219,5 +2219,58 @@
             }
         }
     </script>
+    <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  // PASTE YOUR ACTUAL CONFIG HERE
+  const firebaseConfig = {
+
+  apiKey: "AIzaSyApjuyVGDh3WTAQF25Wnn-Rw_fpkJ5Ve68",
+
+  authDomain: "elcelections.firebaseapp.com",
+
+  projectId: "elcelections",
+
+  storageBucket: "elcelections.firebasestorage.app",
+
+  messagingSenderId: "790899122181",
+
+  appId: "1:790899122181:web:e9869bfe41c5955aa03c6c",
+
+  measurementId: "G-2RQDNHENTV"
+
+};
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // --- FUNCTION TO CAST VOTE ---
+  window.castVote = function(candidateId) {
+    const voteRef = ref(db, 'votes/' + candidateId);
+    
+    // runTransaction ensures that if two people vote at the exact same time, 
+    // both votes are counted correctly (concurrency).
+    runTransaction(voteRef, (currentValue) => {
+      return (currentValue || 0) + 1;
+    }).then(() => {
+      alert("Vote recorded for " + candidateId + "!");
+    }).catch((error) => {
+      console.error("Vote failed: ", error);
+    });
+  };
+
+  // --- LIVE DATA LISTENER ---
+  const displayRef = ref(db, 'votes');
+  onValue(displayRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      // Update these IDs to match whatever is in your HTML
+      if(document.getElementById('count-A')) document.getElementById('count-A').innerText = data.CandidateA || 0;
+      if(document.getElementById('count-B')) document.getElementById('count-B').innerText = data.CandidateB || 0;
+    }
+  });
+</script>
 </body>
 </html>
